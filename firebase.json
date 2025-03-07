@@ -1,0 +1,43 @@
+{
+    "hosting": {
+        "public": "build/web",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "rewrites": [
+            {
+                "source": "/responder/**",
+                "destination": "/index.html"
+            },
+            {
+                "source": "/resultados/**",
+                "destination": "/index.html"
+            }
+        ]
+    },
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "encuesta-62cf6",
+                    "appId": "1:555779524183:android:73d8b702686c133ca64512",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "encuesta-62cf6",
+                    "configurations": {
+                        "android": "1:555779524183:android:73d8b702686c133ca64512",
+                        "ios": "1:555779524183:ios:c1125fddf1ffd694a64512",
+                        "macos": "1:555779524183:ios:c1125fddf1ffd694a64512",
+                        "web": "1:555779524183:web:3a996c148685fa7ea64512",
+                        "windows": "1:555779524183:web:d3a3c40f2d335284a64512"
+                    }
+                }
+            }
+        }
+    }
+}
