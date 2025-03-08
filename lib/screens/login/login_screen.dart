@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-// import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:go_router/go_router.dart';
@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return; // El usuario canceló el login.
+      if (googleUser == null) return;
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
@@ -51,10 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // 🔹 Esperar a que Firebase actualice el usuario
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // ✅ Verificar si el usuario está correctamente autenticado
       final User? firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser != null) {
         print("Usuario autenticado: ${firebaseUser.email}");
@@ -68,29 +66,33 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _signInWithFacebook(BuildContext context) async {
-    //   try {
-    //     final LoginResult result = await FacebookAuth.instance.login();
-    //     if (result.status == LoginStatus.cancelled)
-    //       return; // El usuario canceló el login.
+  static Future<void> _signInWithFacebook(BuildContext context) async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+      if (result.status == LoginStatus.success) {
+        final OAuthCredential facebookAuthCredential =
+            FacebookAuthProvider.credential(result.accessToken!.tokenString);
 
-    //     final AuthCredential credential =
-    //         FacebookAuthProvider.credential(result.accessToken!.token);
+        await FirebaseAuth.instance
+            .signInWithCredential(facebookAuthCredential);
 
-    //     UserCredential userCredential =
-    //         await FirebaseAuth.instance.signInWithCredential(credential);
+        await Future.delayed(const Duration(milliseconds: 500));
 
-    //     // ✅ Verifica si userCredential.user no es nulo antes de navegar
-    //     if (userCredential.user != null) {
-    //       print("Usuario autenticado: ${userCredential.user?.email}");
-    //       context.go('/home');
-    //     } else {
-    //       throw Exception("No se pudo obtener la información del usuario");
-    //     }
-    //   } catch (e) {
-    //     ScaffoldMessenger.of(context)
-    //         .showSnackBar(SnackBar(content: Text('Error: $e')));
-    //   }
+        final User? firebaseUser = FirebaseAuth.instance.currentUser;
+        if (firebaseUser != null) {
+          print("Usuario autenticado: ${firebaseUser.email}");
+          context.go('/home');
+        } else {
+          throw Exception("No se pudo obtener la información del usuario");
+        }
+      } else {
+        throw Exception(
+            "Inicio de sesión con Facebook fallido: ${result.message}");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   @override

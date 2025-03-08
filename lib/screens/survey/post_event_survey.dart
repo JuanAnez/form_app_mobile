@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:forms/screens/home_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -205,18 +204,6 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
     });
   }
 
-  Future<void> _launchUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      print("⚠️ No se pudo abrir el enlace: $url");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se puede abrir el enlace: $url')),
-      );
-    } else {
-      print("✅ Enlace abierto con éxito: $url");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
