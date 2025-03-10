@@ -1,0 +1,2 @@
+/home/janez/Documents/forms/android/app/.cxx/RelWithDebInfo/414r4mk6/x86/CMakeFiles/edit_cache.dir
+/home/janez/Documents/forms/android/app/.cxx/RelWithDebInfo/414r4mk6/x86/CMakeFiles/rebuild_cache.dir
