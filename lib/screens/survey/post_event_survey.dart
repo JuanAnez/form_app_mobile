@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages, library_private_types_in_public_api, use_build_context_synchronously, unnecessary_to_list_in_spreads
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -97,6 +98,15 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
       return;
     }
 
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Debes iniciar sesión para crear una encuesta")),
+      );
+      return;
+    }
+
     List<Map<String, dynamic>> questionsToSave = questions.map((question) {
       Map<String, int> votesMap = {};
       for (var option in question["options"]) {
@@ -118,7 +128,8 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
         'questions': questionsToSave,
         'createdAt': FieldValue.serverTimestamp(),
         'deadline': selectedDeadline,
-        'imagePath': widget.imagePath, // Save the image path
+        'imagePath': widget.imagePath,
+        'userId': user.uid, // 🔹 Almacena el ID del usuario
       });
 
       if (!mounted) return;
@@ -127,8 +138,10 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
         surveyId = surveyRef.id;
       });
 
-      String responseUrl = "https://encuesta-62cf6.web.app/#/responder/$surveyId";
-      String resultsUrl = "https://encuesta-62cf6.web.app/#/resultados/$surveyId";
+      String responseUrl =
+          "https://encuesta-62cf6.web.app/#/responder/$surveyId";
+      String resultsUrl =
+          "https://encuesta-62cf6.web.app/#/resultados/$surveyId";
 
       print("🔹 Responder encuesta URL: $responseUrl");
       print("🔹 Ver resultados URL: $resultsUrl");
@@ -152,8 +165,7 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
     }
 
     if (mounted) {
-      GoRouter.of(context)
-          .go("/listasEcuestas"); // Navigate to the appropriate page
+      GoRouter.of(context).go("/listasEcuestas");
     }
   }
 
@@ -203,7 +215,6 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
       questions[questionIndex]["votes"].remove(optionText);
     });
   }
-
 
   @override
   Widget build(BuildContext context) {

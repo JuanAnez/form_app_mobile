@@ -49,8 +49,6 @@ class MainApp extends StatelessWidget {
           final surveyId = state.pathParameters['surveyId']!;
           return results.SurveyResultsScreen(surveyId: surveyId);
         },
-        redirect: (context, state) =>
-            FirebaseAuth.instance.currentUser == null ? '/login' : null,
       ),
       GoRoute(
         path: '/listasEcuestas',

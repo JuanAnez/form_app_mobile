@@ -1,4 +1,5 @@
 // filepath: /home/janez/Documents/forms/lib/screens/login/login_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -66,12 +67,21 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  static Future<void> _signInWithFacebook(BuildContext context) async {
+  Future<void> _signInWithFacebook(BuildContext context) async {
     try {
-      final LoginResult result = await FacebookAuth.instance.login();
-      if (result.status == LoginStatus.success) {
+      final LoginResult loginResult = await FacebookAuth.instance.login();
+
+      if (loginResult.status == LoginStatus.success) {
+        final String? accessToken = loginResult.accessToken?.tokenString;
+
+        if (accessToken == null) {
+          throw Exception("El token de acceso de Facebook es nulo.");
+        }
+
+        print("Facebook Access Token: $accessToken");
+
         final OAuthCredential facebookAuthCredential =
-            FacebookAuthProvider.credential(result.accessToken!.tokenString);
+            FacebookAuthProvider.credential(accessToken);
 
         await FirebaseAuth.instance
             .signInWithCredential(facebookAuthCredential);
@@ -81,13 +91,22 @@ class _LoginScreenState extends State<LoginScreen> {
         final User? firebaseUser = FirebaseAuth.instance.currentUser;
         if (firebaseUser != null) {
           print("Usuario autenticado: ${firebaseUser.email}");
+
+          // Obtener la URL de la foto de perfil de Facebook
+          final userData = await FacebookAuth.instance.getUserData();
+          final String? photoUrl = userData['picture']['data']['url'];
+
+          // Actualizar el perfil del usuario con la URL de la foto de perfil
+          await firebaseUser.updatePhotoURL(photoUrl);
+
           context.go('/home');
         } else {
           throw Exception("No se pudo obtener la información del usuario");
         }
       } else {
+        print("Error en inicio de sesión con Facebook: ${loginResult.message}");
         throw Exception(
-            "Inicio de sesión con Facebook fallido: ${result.message}");
+            "Inicio de sesión cancelado o fallido: ${loginResult.message}");
       }
     } catch (e) {
       ScaffoldMessenger.of(context)

@@ -144,7 +144,7 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text("Error en el envío"),
+            title: const Text("Error"),
             content: const Text("Por favor, responda todas las preguntas antes de enviar."),
             actions: [
               TextButton(
@@ -262,6 +262,20 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
                 }
                 Map<String, dynamic> surveyData = snapshot.data!;
                 questions = surveyData['questions'];
+
+                // Verificar si la encuesta ha expirado
+                Timestamp? deadlineTimestamp = surveyData['deadline'];
+                if (deadlineTimestamp != null) {
+                  DateTime deadline = deadlineTimestamp.toDate();
+                  if (DateTime.now().isAfter(deadline)) {
+                    return Center(
+                      child: Text(
+                        "La encuesta ha expirado.",
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  }
+                }
 
                 return Padding(
                   padding: const EdgeInsets.all(16.0),

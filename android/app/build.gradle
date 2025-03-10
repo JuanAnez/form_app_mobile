@@ -7,8 +7,8 @@ plugins {
 
 android {
     namespace = "com.example.forms"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 35 // Actualiza a 35
+    ndkVersion = "25.1.8937393" // Actualiza a 25.1.8937393
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -21,11 +21,11 @@ android {
 
     defaultConfig {
         applicationId = "com.example.forms"
-        minSdk = 23  // <-- Cambiar manualmente a 23
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-}
+        minSdk = 23
+        targetSdk = 33
+        versionCode = 1 // Define flutterVersionCode
+        versionName = "1.0" // Define flutterVersionName
+    }
 
     buildTypes {
         release {
@@ -38,8 +38,10 @@ flutter {
     source = "../.."
 }
 
-// dependencies {
-//   implementation platform('com.google.firebase:firebase-bom:33.10.0')
-//   implementation 'com.google.firebase:firebase-analytics'
-//implementation("com.google.firebase:firebase-auth")
-// }
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:33.10.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.facebook.android:facebook-android-sdk:16.0.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
