@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="facebook_app_id">673810148646103</string>
-    <!-- <string name="fb_login_protocol_scheme">fb1234</string> -->
-    <string name="facebook_client_token">fbf19ecab474f3eb8a681bbd17832037</string>
+    <string name="app_name">Forms App</string>
+    <string name="facebook_app_id">1023846216254775</string>
+    <string name="fb_login_protocol_scheme">fb1023846216254775</string>
+    <string name="facebook_client_token">f439786b79c466f66712d02e678e4354</string>
 </resources>

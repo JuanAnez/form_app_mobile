@@ -234,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 "Forgot Password?",
                                 style: TextStyle(
                                     color: Color.fromRGBO(196, 135, 198, 1)),
-                              )))),
+                              )))),//COMO HAGO UN METODO DE RECUPERACION DE CONTRASENA
                   const SizedBox(
                     height: 30,
                   ),
@@ -264,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: const Text(
                         "Crear una cuenta",
-                        style: TextStyle(color: Color.fromRGBO(49, 39, 79, 1)),
+                        style: TextStyle(color: Color.fromRGBO(49, 39, 79, 1)),//COMO CREAR UNA CUENTA CON METODO DE VALIDACION DE CORREO ELECTRONICO
                       ),
                     ),
                   ),
