@@ -1,12 +1,15 @@
 // ignore_for_file: depend_on_referenced_packages, library_private_types_in_public_api, use_build_context_synchronously, unnecessary_to_list_in_spreads
 
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
-// import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PostEventSurvey extends StatefulWidget {
   final String imagePath;
@@ -26,6 +29,7 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
   String surveyId = '';
   DateTime? selectedDeadlineDate;
   TimeOfDay? selectedDeadlineTime;
+  File? _selectedImage;
 
   @override
   void initState() {
@@ -43,6 +47,22 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
       }
     }
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile =
+        await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final String savedImagePath =
+          await _saveImageToAppDir(File(pickedFile.path));
+      if (savedImagePath.isNotEmpty) {
+        setState(() {
+          _selectedImage = File(savedImagePath);
+        });
+      }
+    }
   }
 
   Future<void> _selectDeadlineDate(BuildContext context) async {
@@ -86,6 +106,22 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
     return null;
   }
 
+  Future<String> _saveImageToAppDir(File imageFile) async {
+    try {
+      final Directory appDir = await getApplicationDocumentsDirectory();
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String savedPath = '${appDir.path}/$fileName';
+
+      // Copiar la imagen seleccionada a la memoria interna
+      final File newImage = await imageFile.copy(savedPath);
+      print("✅ Imagen guardada en: $savedPath");
+      return savedPath;
+    } catch (e) {
+      print("❌ Error al guardar la imagen: $e");
+      return "";
+    }
+  }
+
   Future<void> saveSurvey() async {
     if (titleController.text.isEmpty ||
         questions.isEmpty ||
@@ -107,29 +143,27 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
       return;
     }
 
-    List<Map<String, dynamic>> questionsToSave = questions.map((question) {
-      Map<String, int> votesMap = {};
-      for (var option in question["options"]) {
-        votesMap[option["text"]] = question["votes"][option["text"]] ?? 0;
-      }
-      return {
-        "text": question["text"],
-        "options": question["options"]
-            .map((option) => {"text": option["text"]})
-            .toList(),
-        "votes": votesMap,
-      };
-    }).toList();
+    String imagePathToSave = _selectedImage?.path ?? widget.imagePath;
 
     try {
       DocumentReference surveyRef =
           await FirebaseFirestore.instance.collection('surveys').add({
         'title': titleController.text,
-        'questions': questionsToSave,
+        'questions': questions.map((q) {
+          return {
+            "text": q["text"],
+            "options":
+                q["options"].map((opt) => {"text": opt["text"]}).toList(),
+            "votes": {
+              for (var opt in q["options"])
+                opt["text"]: q["votes"][opt["text"]] ?? 0
+            },
+          };
+        }).toList(),
         'createdAt': FieldValue.serverTimestamp(),
         'deadline': selectedDeadline,
-        'imagePath': widget.imagePath,
-        'userId': user.uid, // 🔹 Almacena el ID del usuario
+        'imagePath': imagePathToSave, // 🔹 Guardar ruta local
+        'userId': user.uid,
       });
 
       if (!mounted) return;
@@ -166,6 +200,14 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
 
     if (mounted) {
       GoRouter.of(context).go("/listasEcuestas");
+    }
+  }
+
+  Widget _buildImageWidget(String imagePath) {
+    if (imagePath.startsWith('/')) {
+      return Image.file(File(imagePath), fit: BoxFit.cover);
+    } else {
+      return Image.asset(imagePath, fit: BoxFit.cover);
     }
   }
 
@@ -258,7 +300,21 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
                     ),
                     child: Column(
                       children: [
-                        Image.asset(widget.imagePath),
+                        _selectedImage != null
+                            ? Image.file(_selectedImage!)
+                            : _buildImageWidget(widget.imagePath),
+                        const SizedBox(height: 10),
+                        const SizedBox(height: 10),
+                        Center(
+                          child: ElevatedButton.icon(
+                            onPressed: _pickImage,
+                            icon: const Icon(Icons.image, color: Colors.white),
+                            label: const Text("Cambiar imagen",
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.brown),
+                          ),
+                        ),
                         const SizedBox(height: 10),
                         TextField(
                           controller: titleController,
