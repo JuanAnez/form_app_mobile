@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+// import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:go_router/go_router.dart';
@@ -44,22 +44,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-
-      final AuthCredential credential = GoogleAuthProvider.credential(
+      final AuthCredential googleCredential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final User? firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null) {
-        print("Usuario autenticado: ${firebaseUser.email}");
+      try {
+        // Intentar iniciar sesión normalmente con Google
+        await FirebaseAuth.instance.signInWithCredential(googleCredential);
         context.go('/home');
-      } else {
-        throw Exception("No se pudo obtener la información del usuario");
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'account-exists-with-different-credential') {
+          // 🔥 El usuario ya tiene cuenta con otro proveedor
+          String email = e.email!;
+          List<String> providers =
+              await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+
+          if (providers.contains('password')) {
+            // Si el usuario ya tiene una cuenta con correo y contraseña
+            _mostrarDialogoInicioSesion(email);
+          } else if (providers.contains('facebook.com')) {
+            // 🔥 Si la cuenta está asociada a Facebook, pedimos que inicie sesión con Facebook
+            // _signInWithFacebook(context, googleCredential);
+          }
+        } else {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context)
@@ -67,51 +78,76 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _signInWithFacebook(BuildContext context) async {
-    try {
-      final LoginResult loginResult = await FacebookAuth.instance.login();
+  // Future<void> _signInWithFacebook(BuildContext context,
+  //     [AuthCredential? pendingCredential]) async {
+  //   try {
+  //     final LoginResult loginResult = await FacebookAuth.instance.login();
 
-      if (loginResult.status == LoginStatus.success) {
-        final String? accessToken = loginResult.accessToken?.tokenString;
+  //     if (loginResult.status == LoginStatus.success) {
+  //       final OAuthCredential facebookCredential =
+  //           FacebookAuthProvider.credential(
+  //               loginResult.accessToken!.tokenString);
 
-        if (accessToken == null) {
-          throw Exception("El token de acceso de Facebook es nulo.");
-        }
+  //       UserCredential userCredential;
+  //       if (pendingCredential != null) {
+  //         // 🔥 Vincular cuenta con Google si hay credenciales pendientes
+  //         userCredential = await FirebaseAuth.instance
+  //             .signInWithCredential(facebookCredential);
+  //         await userCredential.user?.linkWithCredential(pendingCredential);
+  //       } else {
+  //         // Iniciar sesión con Facebook normalmente
+  //         userCredential = await FirebaseAuth.instance
+  //             .signInWithCredential(facebookCredential);
+  //       }
 
-        print("Facebook Access Token: $accessToken");
+  //       final User? user = userCredential.user;
 
-        final OAuthCredential facebookAuthCredential =
-            FacebookAuthProvider.credential(accessToken);
+  //       if (user != null) {
+  //         // 🔥 Obtener la foto de perfil de Facebook
+  //         final userData = await FacebookAuth.instance.getUserData();
+  //         final String? photoUrl = userData['picture']['data']['url'];
 
-        await FirebaseAuth.instance
-            .signInWithCredential(facebookAuthCredential);
+  //         if (photoUrl != null) {
+  //           // 🔥 Actualizar la `photoURL` en Firebase
+  //           await user.updatePhotoURL(photoUrl);
+  //           await user.reload(); // Forzar actualización de datos del usuario
+  //         }
+  //       }
 
-        await Future.delayed(const Duration(milliseconds: 500));
+  //       context.go('/home'); // Redirigir al Home
+  //     } else {
+  //       throw Exception("Inicio de sesión cancelado.");
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context)
+  //         .showSnackBar(SnackBar(content: Text('Error: $e')));
+  //   }
+  // }
 
-        final User? firebaseUser = FirebaseAuth.instance.currentUser;
-        if (firebaseUser != null) {
-          print("Usuario autenticado: ${firebaseUser.email}");
-
-          // Obtener la URL de la foto de perfil de Facebook
-          final userData = await FacebookAuth.instance.getUserData();
-          final String? photoUrl = userData['picture']['data']['url'];
-
-          // Actualizar el perfil del usuario con la URL de la foto de perfil
-          await firebaseUser.updatePhotoURL(photoUrl);
-
-          context.go('/home');
-        } else {
-          throw Exception("No se pudo obtener la información del usuario");
-        }
-      } else {
-        print("Error en inicio de sesión con Facebook: ${loginResult.message}");
-        throw Exception(
-            "Inicio de sesión cancelado o fallido: ${loginResult.message}");
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
+  void _mostrarDialogoInicioSesion(String email) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cuenta existente'),
+          content: Text(
+              'Tu correo $email ya está registrado. Inicia sesión con tu contraseña.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _emailController.text = email; // Autocompletar email
+                Navigator.pop(context);
+              },
+              child: const Text('Iniciar sesión'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -234,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 "Forgot Password?",
                                 style: TextStyle(
                                     color: Color.fromRGBO(196, 135, 198, 1)),
-                              )))),//COMO HAGO UN METODO DE RECUPERACION DE CONTRASENA
+                              )))), //COMO HAGO UN METODO DE RECUPERACION DE CONTRASENA
                   const SizedBox(
                     height: 30,
                   ),
@@ -255,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       )),
                   const SizedBox(
-                    height: 20,
+                    height: 60,
                   ),
                   Center(
                     child: TextButton(
@@ -264,7 +300,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: const Text(
                         "Crear una cuenta",
-                        style: TextStyle(color: Color.fromRGBO(49, 39, 79, 1)),//COMO CREAR UNA CUENTA CON METODO DE VALIDACION DE CORREO ELECTRONICO
+                        style: TextStyle(
+                            color: Color.fromRGBO(49, 39, 79,
+                                1)), //COMO CREAR UNA CUENTA CON METODO DE VALIDACION DE CORREO ELECTRONICO
                       ),
                     ),
                   ),
@@ -281,14 +319,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                         ),
-                        Center(
-                          child: SignInButton(
-                            Buttons.facebookNew,
-                            onPressed: () {
-                              _signInWithFacebook(context);
-                            },
-                          ),
-                        ),
+                        // Center(
+                        //   child: SignInButton(
+                        //     Buttons.facebookNew,
+                        //     onPressed: () {
+                        //       _signInWithFacebook(context);
+                        //     },
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

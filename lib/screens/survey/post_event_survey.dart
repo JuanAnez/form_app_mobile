@@ -112,8 +112,7 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
       final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final String savedPath = '${appDir.path}/$fileName';
 
-      // Copiar la imagen seleccionada a la memoria interna
-      final File newImage = await imageFile.copy(savedPath);
+       await imageFile.copy(savedPath);
       print("✅ Imagen guardada en: $savedPath");
       return savedPath;
     } catch (e) {
