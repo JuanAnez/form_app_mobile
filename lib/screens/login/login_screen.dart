@@ -126,98 +126,83 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.only(bottom: 150),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isTablet = constraints.maxWidth > 600;
+          double padding = isTablet ? 80 : 40;
+
+          return Container(
+            height: MediaQuery.of(context).size.height,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color(0xFF88DFFA),
-                  Color(0xFFA667C3),
-                ],
+                colors: [Color(0xFF88DFFA), Color(0xFFA667C3)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                SizedBox(
-                  height: 250,
-                  child: Stack(
-                    children: <Widget>[],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: padding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text(
+                      Text(
                         "Bienvenido!",
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 35,
+                          fontSize: isTablet ? 45 : 35,
                         ),
                       ),
-                      const SizedBox(height: 40),
-                      Column(
-                        children: <Widget>[
-                          _buildCustomTextField("Correo Electrónico", false),
-                          const SizedBox(height: 16),
-                          _buildCustomTextField("Contraseña", true),
-                          const SizedBox(height: 24),
-                          _buildLoginButton(),
-                          Center(
-                            child: TextButton(
-                              onPressed: () {
-                                context.go('/forgotPassword');
-                              },
-                              child: const Text(
-                                "Olvidaste tu Contraseña?",
-                                style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 12,
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: Colors.white,
-                                ),
-                              ),
+                      const SizedBox(height: 50),
+                      _buildCustomTextField("Correo Electrónico", false),
+                      const SizedBox(height: 16),
+                      _buildCustomTextField("Contraseña", true),
+                      const SizedBox(height: 24),
+                      _buildLoginButton(),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            context.go('/forgotPassword');
+                          },
+                          child: const Text(
+                            "Olvidaste tu Contraseña?",
+                            style: TextStyle(
+                              fontFamily: 'Lato',
+                              color: Colors.white,
+                              fontWeight: FontWeight.normal,
+                              fontSize: 12,
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          _buildDivider(),
-                        ],
+                        ),
                       ),
+                      const SizedBox(height: 24),
+                      _buildDivider(),
                       const SizedBox(height: 30),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Center(child: _buildGoogleSignInButton()),
-                          const SizedBox(height: 60),
-                          TextButton(
-                            onPressed: () {
-                              context.go('/register');
-                            },
-                            child: const Text(
-                              "Crear una cuenta",
-                              style: TextStyle(color: Colors.white),
-                            ),
+                      Center(child: _buildGoogleSignInButton()),
+                      const SizedBox(height: 40),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            context.go('/register');
+                          },
+                          child: const Text(
+                            "Crear una cuenta",
+                            style: TextStyle(color: Colors.white),
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -356,58 +341,3 @@ Widget _buildDivider() {
     ],
   );
 }
- // Future<void> _signInWithFacebook(BuildContext context,
-  //     [AuthCredential? pendingCredential]) async {
-  //   try {
-  //     final LoginResult loginResult = await FacebookAuth.instance.login();
-
-  //     if (loginResult.status == LoginStatus.success) {
-  //       final OAuthCredential facebookCredential =
-  //           FacebookAuthProvider.credential(
-  //               loginResult.accessToken!.tokenString);
-
-  //       UserCredential userCredential;
-  //       if (pendingCredential != null) {
-  //         // 🔥 Vincular cuenta con Google si hay credenciales pendientes
-  //         userCredential = await FirebaseAuth.instance
-  //             .signInWithCredential(facebookCredential);
-  //         await userCredential.user?.linkWithCredential(pendingCredential);
-  //       } else {
-  //         // Iniciar sesión con Facebook normalmente
-  //         userCredential = await FirebaseAuth.instance
-  //             .signInWithCredential(facebookCredential);
-  //       }
-
-  //       final User? user = userCredential.user;
-
-  //       if (user != null) {
-  //         // 🔥 Obtener la foto de perfil de Facebook
-  //         final userData = await FacebookAuth.instance.getUserData();
-  //         final String? photoUrl = userData['picture']['data']['url'];
-
-  //         if (photoUrl != null) {
-  //           // 🔥 Actualizar la `photoURL` en Firebase
-  //           await user.updatePhotoURL(photoUrl);
-  //           await user.reload(); // Forzar actualización de datos del usuario
-  //         }
-  //       }
-
-  //       context.go('/home'); // Redirigir al Home
-  //     } else {
-  //       throw Exception("Inicio de sesión cancelado.");
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context)
-  //         .showSnackBar(SnackBar(content: Text('Error: $e')));
-  //   }
-  // }
-
-  // Center(
-                        //   child: SignInButton(
-                        //     Buttons.facebookNew,
-                        //     onPressed: () {
-                        //       _signInWithFacebook(context);
-                        //     },
-                        //   ),
-                        // ),
-

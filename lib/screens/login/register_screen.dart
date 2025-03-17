@@ -142,53 +142,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.only(bottom: 150),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isTablet = constraints.maxWidth > 600;
+          double paddingHorizontal = isTablet ? 80 : 40;
+          double titleFontSize = isTablet ? 28 : 20;
+
+          return Container(
+            height: MediaQuery.of(context).size.height,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color(0xFF88DFFA),
-                  Color(0xFFA667C3),
-                ],
+                colors: [Color(0xFF88DFFA), Color(0xFFA667C3)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                SizedBox(
-                  height: 250,
-                  child: Stack(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.only(left: 40, top: 85),
-                        child: IconButton(
-                          icon:
-                              const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () {
-                            context.go('/login');
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: paddingHorizontal),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text(
+                      Stack(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 0, top: 10),
+                            child: IconButton(
+                              icon: const Icon(Icons.arrow_back,
+                                  color: Colors.white),
+                              onPressed: () {
+                                context.go('/login');
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+                      Text(
                         "Crear una cuenta",
                         style: TextStyle(
                           fontFamily: 'Lato',
                           color: Colors.white,
                           fontWeight: FontWeight.w400,
-                          fontSize: 20,
+                          fontSize: titleFontSize,
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -196,7 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           "Nombre Completo", _fullNameController, false),
                       const SizedBox(height: 16),
                       _buildCustomTextField(
-                          "Correo Electronico", _emailController, false),
+                          "Correo Electrónico", _emailController, false),
                       const SizedBox(height: 16),
                       _buildCustomTextField(
                           "Ingresa una Contraseña", _passwordController, true),
@@ -224,8 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _buildDivider(),
                       const SizedBox(height: 24),
                       Center(child: _buildGoogleSignInButton()),
-                      const SizedBox(height: 16),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 40),
                       Center(
                         child: TextButton(
                           onPressed: () {
@@ -244,10 +240,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

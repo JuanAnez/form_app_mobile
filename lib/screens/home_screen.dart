@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:forms/widgets/card_widget.dart';
@@ -55,11 +53,11 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              backgroundColor: Color.fromARGB(255, 13, 148, 189),
+              backgroundColor: const Color.fromARGB(255, 13, 148, 189),
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(4.0),
                 child: Container(
-                  color: Color.fromARGB(255, 74, 8, 105),
+                  color: const Color.fromARGB(255, 74, 8, 105),
                   height: 1.0,
                 ),
               ),
@@ -69,7 +67,7 @@ class HomeScreen extends StatelessWidget {
                     backgroundImage: NetworkImage(photoUrl),
                   )
                 else
-                  const Icon(Icons.person),
+                  const Icon(Icons.person, color: Colors.white),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.white),
                   onPressed: () async {
@@ -81,54 +79,44 @@ class HomeScreen extends StatelessWidget {
             ),
             body: LayoutBuilder(
               builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF88DFFA), Color(0xFFA667C3)],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
+                bool isTablet = constraints.maxWidth > 600;
+                double cardWidth = isTablet ? 450 : double.infinity;
+                double paddingHorizontal = isTablet ? 60 : 10;
+
+                return Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF88DFFA), Color(0xFFA667C3)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
+                  ),
+                  child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(10),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            CardWidget(
-                              imagePath: 'assets/images/survey-portal.png',
-                              title: 'Crear Encuesta',
-                              onTap: () {
-                                context.go('/listasModelos');
-                              },
-                            ),
-                            _spaceBox(),
-                            CardWidget(
-                              imagePath:
-                                  'assets/images/registration-portal.png',
-                              title: 'Encuestas realizadas',
-                              onTap: () {
-                                context.go('/listasEcuestas');
-                              },
-                            ),
-                            _spaceBox(),
-                            CardWidget(
-                              imagePath: 'assets/images/quiz-portal.png',
-                              title: 'Cuestionario',
-                              onTap: () {
-                                context.go('/quizScreen');
-                              },
-                            ),
-                            _spaceBox(),
-                            CardWidget(
-                              imagePath: 'assets/images/invitation-portal.png',
-                              title: 'Invitacion',
-                              onTap: () {
-                                context.go('/registrationScreen');
-                              },
-                            ),
-                          ],
-                        ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: paddingHorizontal),
+                      child: Column(
+                        children: [
+                          _buildCard(context, 'assets/images/survey-portal.png',
+                              'Crear Encuesta', '/listasModelos', cardWidth),
+                          _spaceBox(),
+                          _buildCard(
+                              context,
+                              'assets/images/registration-portal.png',
+                              'Encuestas realizadas',
+                              '/listasEcuestas',
+                              cardWidth),
+                          _spaceBox(),
+                          _buildCard(context, 'assets/images/quiz-portal.png',
+                              'Cuestionario', '/quizScreen', cardWidth),
+                          _spaceBox(),
+                          _buildCard(
+                              context,
+                              'assets/images/invitation-portal.png',
+                              'Invitación',
+                              '/registrationScreen',
+                              cardWidth),
+                        ],
                       ),
                     ),
                   ),
@@ -138,6 +126,20 @@ class HomeScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCard(BuildContext context, String imagePath, String title,
+      String route, double width) {
+    return SizedBox(
+      width: width,
+      child: CardWidget(
+        imagePath: imagePath,
+        title: title,
+        onTap: () {
+          context.go(route);
+        },
+      ),
     );
   }
 
