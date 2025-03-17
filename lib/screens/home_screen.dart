@@ -48,7 +48,9 @@ class HomeScreen extends StatelessWidget {
                   ),
                   Text(
                     email,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal,
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.normal,
                         color: Colors.white),
                   ),
                 ],
@@ -88,43 +90,45 @@ class HomeScreen extends StatelessWidget {
                         end: Alignment.bottomCenter,
                       ),
                     ),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          _spaceBox(),
-                          // const SubmitButtonWidget(),
-                          CardWidget(
-                            imagePath: 'assets/images/survey-portal.png',
-                            title: 'Crear Encuesta',
-                            onTap: () {
-                              context.go('/listasModelos');
-                            },
-                          ),
-                          _spaceBox(),
-                          CardWidget(
-                            imagePath: 'assets/images/registration-portal.png',
-                            title: 'Encuestas realizadas',
-                            onTap: () {
-                              context.go('/listasEcuestas');
-                            },
-                          ),
-                          _spaceBox(),
-                          CardWidget(
-                            imagePath: 'assets/images/quiz-portal.png',
-                            title: 'Cuestionario',
-                            onTap: () {
-                              context.go('/quizScreen');
-                            },
-                          ),
-                          _spaceBox(),
-                          CardWidget(
-                            imagePath: 'assets/images/invitation-portal.png',
-                            title: 'Invitacion',
-                            onTap: () {
-                              context.go('/registrationScreen');
-                            },
-                          ),
-                        ],
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(10),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            CardWidget(
+                              imagePath: 'assets/images/survey-portal.png',
+                              title: 'Crear Encuesta',
+                              onTap: () {
+                                context.go('/listasModelos');
+                              },
+                            ),
+                            _spaceBox(),
+                            CardWidget(
+                              imagePath:
+                                  'assets/images/registration-portal.png',
+                              title: 'Encuestas realizadas',
+                              onTap: () {
+                                context.go('/listasEcuestas');
+                              },
+                            ),
+                            _spaceBox(),
+                            CardWidget(
+                              imagePath: 'assets/images/quiz-portal.png',
+                              title: 'Cuestionario',
+                              onTap: () {
+                                context.go('/quizScreen');
+                              },
+                            ),
+                            _spaceBox(),
+                            CardWidget(
+                              imagePath: 'assets/images/invitation-portal.png',
+                              title: 'Invitacion',
+                              onTap: () {
+                                context.go('/registrationScreen');
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

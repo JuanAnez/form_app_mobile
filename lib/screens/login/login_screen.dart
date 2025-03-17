@@ -161,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontFamily: 'Poppins',
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 45,
+                          fontSize: 35,
                         ),
                       ),
                       const SizedBox(height: 40),
