@@ -112,7 +112,7 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
       final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final String savedPath = '${appDir.path}/$fileName';
 
-       await imageFile.copy(savedPath);
+      await imageFile.copy(savedPath);
       print("✅ Imagen guardada en: $savedPath");
       return savedPath;
     } catch (e) {
@@ -269,14 +269,25 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
           iconTheme: const IconThemeData(color: Colors.white),
           title: TextField(
             controller: titleController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
             decoration: const InputDecoration(
               border: InputBorder.none,
               hintText: 'Ingrese el título',
-              hintStyle: TextStyle(color: Colors.white),
+              hintStyle: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
           ),
-          backgroundColor: Colors.brown[300],
+          backgroundColor: Color.fromARGB(255, 13, 148, 189),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: Color.fromARGB(255, 74, 8, 105),
+              height: 1.0,
+            ),
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.save),
@@ -294,7 +305,7 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.brown[100],
+                      color: Color.fromARGB(255, 159, 221, 240),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -311,7 +322,8 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
                             label: const Text("Cambiar imagen",
                                 style: TextStyle(color: Colors.white)),
                             style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.brown),
+                                backgroundColor:
+                                    Color.fromARGB(255, 13, 148, 189)),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -337,7 +349,7 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     mainAxisSize: MainAxisSize.max,
                     children: [
-                      const Text("Date Limit:"),
+                      const Text("Fecha límite:"),
                       const SizedBox(width: 10),
                       Text(
                         selectedDeadlineDate != null
@@ -460,7 +472,8 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
                             label: const Text("Agregar opción",
                                 style: TextStyle(color: Colors.white)),
                             style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.brown),
+                                backgroundColor:
+                                    Color.fromARGB(255, 13, 148, 189)),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -481,7 +494,7 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
                       label: const Text("Agregar",
                           style: TextStyle(color: Colors.white)),
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.brown),
+                          backgroundColor: Color.fromARGB(255, 13, 148, 189)),
                     ),
                   ),
                   const SizedBox(height: 20),

@@ -1,11 +1,12 @@
 // filepath: /home/janez/Documents/forms/lib/screens/login/login_screen.dart
 
+// filepath: /home/janez/Documents/forms/lib/screens/login/login_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:forms/screens/loading/loading_data_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 // import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:sign_in_button/sign_in_button.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,8 +19,18 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   Future<void> _signInWithEmailAndPassword(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoadingDataScreen()),
+    );
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text,
@@ -38,6 +49,14 @@ class _LoginScreenState extends State<LoginScreen> {
   );
 
   Future<void> _signInWithGoogle(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoadingDataScreen()),
+    );
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return;
@@ -78,7 +97,266 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Future<void> _signInWithFacebook(BuildContext context,
+  void _mostrarDialogoInicioSesion(String email) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cuenta existente'),
+          content: Text(
+              'Tu correo $email ya está registrado. Inicia sesión con tu contraseña.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _emailController.text = email;
+                Navigator.pop(context);
+              },
+              child: const Text('Iniciar sesión'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.only(bottom: 150),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF88DFFA),
+                  Color(0xFFA667C3),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                SizedBox(
+                  height: 250,
+                  child: Stack(
+                    children: <Widget>[],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
+                        "Bienvenido!",
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 45,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Column(
+                        children: <Widget>[
+                          _buildCustomTextField("Correo Electrónico", false),
+                          const SizedBox(height: 16),
+                          _buildCustomTextField("Contraseña", true),
+                          const SizedBox(height: 24),
+                          _buildLoginButton(),
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                context.go('/forgotPassword');
+                              },
+                              child: const Text(
+                                "Olvidaste tu Contraseña?",
+                                style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 12,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildDivider(),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Center(child: _buildGoogleSignInButton()),
+                          const SizedBox(height: 60),
+                          TextButton(
+                            onPressed: () {
+                              context.go('/register');
+                            },
+                            child: const Text(
+                              "Crear una cuenta",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleSignInButton() {
+    return GestureDetector(
+      onTap: () {
+        _signInWithGoogle(context);
+      },
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Image.asset(
+            'assets/images/google-icon.png',
+            height: 30,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomTextField(String hint, bool isPassword) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white, width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: isPassword ? _passwordController : _emailController,
+        obscureText: isPassword && !_isPasswordVisible,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(
+            fontFamily: 'Poppins',
+            color: Colors.black54,
+            fontWeight: FontWeight.normal,
+            fontSize: 14,
+          ),
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    color: Colors.black54,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return Column(
+      children: [
+        MaterialButton(
+          onPressed:
+              _isLoading ? null : () => _signInWithEmailAndPassword(context),
+          color: const Color.fromARGB(255, 116, 59, 143),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          height: 50,
+          child: const Center(
+            child: Text(
+              "Iniciar Sesion",
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+Widget _buildDivider() {
+  return Row(
+    children: [
+      const Expanded(
+        child: Divider(
+          color: Colors.white70, // Color de la línea
+          thickness: 1, // Grosor de la línea
+          endIndent: 10, // Espacio antes del texto
+        ),
+      ),
+      const Text(
+        "O Inicia sesión con",
+        style: TextStyle(
+          fontFamily: 'Lato',
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+      const Expanded(
+        child: Divider(
+          color: Colors.white70, // Color de la línea
+          thickness: 1, // Grosor de la línea
+          indent: 10, // Espacio después del texto
+        ),
+      ),
+    ],
+  );
+}
+ // Future<void> _signInWithFacebook(BuildContext context,
   //     [AuthCredential? pendingCredential]) async {
   //   try {
   //     final LoginResult loginResult = await FacebookAuth.instance.login();
@@ -124,202 +402,7 @@ class _LoginScreenState extends State<LoginScreen> {
   //   }
   // }
 
-  void _mostrarDialogoInicioSesion(String email) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Cuenta existente'),
-          content: Text(
-              'Tu correo $email ya está registrado. Inicia sesión con tu contraseña.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                _emailController.text = email; // Autocompletar email
-                Navigator.pop(context);
-              },
-              child: const Text('Iniciar sesión'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            SizedBox(
-              height: 300,
-              child: Stack(
-                children: <Widget>[
-                  Positioned(
-                    top: -40,
-                    height: 300,
-                    width: width,
-                    child: FadeInUp(
-                        duration: const Duration(seconds: 1),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage(
-                                      'assets/images/background.png'),
-                                  fit: BoxFit.fill)),
-                        )),
-                  ),
-                  Positioned(
-                    height: 270,
-                    width: width + 20,
-                    child: FadeInUp(
-                        duration: const Duration(milliseconds: 1000),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage(
-                                      'assets/images/login-background2.png'),
-                                  fit: BoxFit.fill)),
-                        )),
-                  )
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  FadeInUp(
-                      duration: const Duration(milliseconds: 1500),
-                      child: const Text(
-                        "Login",
-                        style: TextStyle(
-                            color: Color.fromRGBO(49, 39, 79, 1),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 30),
-                      )),
-                  const SizedBox(
-                    height: 50,
-                  ),
-                  FadeInUp(
-                      duration: const Duration(milliseconds: 1700),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Colors.white,
-                            border: Border.all(
-                                color: const Color.fromRGBO(196, 135, 198, .3)),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color.fromRGBO(196, 135, 198, .3),
-                                blurRadius: 20,
-                                offset: Offset(0, 10),
-                              )
-                            ]),
-                        child: Column(
-                          children: <Widget>[
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: const BoxDecoration(
-                                  border: Border(
-                                      bottom: BorderSide(
-                                          color: Color.fromRGBO(
-                                              196, 135, 198, .3)))),
-                              child: TextField(
-                                controller: _emailController,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: "Email",
-                                    hintStyle:
-                                        TextStyle(color: Colors.grey.shade700)),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              child: TextField(
-                                controller: _passwordController,
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: "Password",
-                                    hintStyle:
-                                        TextStyle(color: Colors.grey.shade700)),
-                              ),
-                            )
-                          ],
-                        ),
-                      )),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  FadeInUp(
-                      duration: const Duration(milliseconds: 1700),
-                      child: Center(
-                          child: TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                "Forgot Password?",
-                                style: TextStyle(
-                                    color: Color.fromRGBO(196, 135, 198, 1)),
-                              )))), //COMO HAGO UN METODO DE RECUPERACION DE CONTRASENA
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  FadeInUp(
-                      duration: const Duration(milliseconds: 1900),
-                      child: MaterialButton(
-                        onPressed: () => _signInWithEmailAndPassword(context),
-                        color: const Color.fromRGBO(49, 39, 79, 1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        height: 50,
-                        child: const Center(
-                          child: Text(
-                            "Login",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      )),
-                  const SizedBox(
-                    height: 60,
-                  ),
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        context.go('/register');
-                      },
-                      child: const Text(
-                        "Crear una cuenta",
-                        style: TextStyle(
-                            color: Color.fromRGBO(49, 39, 79,
-                                1)), //COMO CREAR UNA CUENTA CON METODO DE VALIDACION DE CORREO ELECTRONICO
-                      ),
-                    ),
-                  ),
-                  FadeInUp(
-                    duration: const Duration(milliseconds: 1900),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Center(
-                          child: SignInButton(
-                            Buttons.google,
-                            onPressed: () {
-                              _signInWithGoogle(context);
-                            },
-                          ),
-                        ),
-                        // Center(
+  // Center(
                         //   child: SignInButton(
                         //     Buttons.facebookNew,
                         //     onPressed: () {
@@ -327,15 +410,4 @@ class _LoginScreenState extends State<LoginScreen> {
                         //     },
                         //   ),
                         // ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
+

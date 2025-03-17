@@ -14,7 +14,8 @@ class ListMakedSurvey extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar eliminación'),
-          content: const Text('¿Está seguro de que desea eliminar esta encuesta?'),
+          content:
+              const Text('¿Está seguro de que desea eliminar esta encuesta?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancelar'),
@@ -34,7 +35,10 @@ class ListMakedSurvey extends StatelessWidget {
     );
 
     if (confirmDelete) {
-      await FirebaseFirestore.instance.collection('surveys').doc(surveyId).delete();
+      await FirebaseFirestore.instance
+          .collection('surveys')
+          .doc(surveyId)
+          .delete();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Encuesta eliminada')),
       );
@@ -54,7 +58,8 @@ class ListMakedSurvey extends StatelessWidget {
       return;
     }
 
-    Map<String, dynamic> surveyData = surveySnapshot.data() as Map<String, dynamic>;
+    Map<String, dynamic> surveyData =
+        surveySnapshot.data() as Map<String, dynamic>;
 
     // Verificar si la encuesta ha expirado
     Timestamp? deadlineTimestamp = surveyData['deadline'];
@@ -80,9 +85,11 @@ class ListMakedSurvey extends StatelessWidget {
   /// 🔹 Función para cargar imágenes desde almacenamiento local o assets
   Widget _buildImageWidget(String imagePath) {
     if (imagePath.startsWith('/')) {
-      return Image.file(File(imagePath), fit: BoxFit.cover);  // 🔹 Imagen guardada en el dispositivo
+      return Image.file(File(imagePath),
+          fit: BoxFit.cover); // 🔹 Imagen guardada en el dispositivo
     } else {
-      return Image.asset(imagePath, fit: BoxFit.cover);  // 🔹 Imagen por defecto en assets
+      return Image.asset(imagePath,
+          fit: BoxFit.cover); // 🔹 Imagen por defecto en assets
     }
   }
 
@@ -91,10 +98,21 @@ class ListMakedSurvey extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Encuestas realizadas'),
-          backgroundColor: Colors.blue[200],
+          title: const Text('Encuestas realizadas',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white)),
+          backgroundColor: Color.fromARGB(255, 13, 148, 189),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: Color.fromARGB(255, 74, 8, 105),
+              height: 1.0,
+            ),
+          ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               context.go('/home');
             },
@@ -109,7 +127,8 @@ class ListMakedSurvey extends StatelessWidget {
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('surveys')
-                        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                        .where('userId',
+                            isEqualTo: FirebaseAuth.instance.currentUser?.uid)
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
@@ -134,7 +153,8 @@ class ListMakedSurvey extends StatelessWidget {
                           var survey = surveys[index];
                           var surveyId = survey.id;
                           var surveyTitle = survey['title'];
-                          var surveyData = survey.data() as Map<String, dynamic>;
+                          var surveyData =
+                              survey.data() as Map<String, dynamic>;
                           var imagePath = surveyData.containsKey('imagePath')
                               ? surveyData['imagePath']
                               : "assets/images/post_event_survey_front.jpg"; // 🔹 Usa la imagen por defecto si no hay una personalizada
@@ -148,7 +168,8 @@ class ListMakedSurvey extends StatelessWidget {
                                 children: [
                                   AspectRatio(
                                     aspectRatio: 32 / 7,
-                                    child: _buildImageWidget(imagePath),  // 🔹 Cargar imagen
+                                    child: _buildImageWidget(
+                                        imagePath), // 🔹 Cargar imagen
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
@@ -168,7 +189,8 @@ class ListMakedSurvey extends StatelessWidget {
                                         icon: const Icon(Icons.quiz,
                                             color: Colors.white),
                                         label: const Text('Responder',
-                                            style: TextStyle(color: Colors.white)),
+                                            style:
+                                                TextStyle(color: Colors.white)),
                                         style: ElevatedButton.styleFrom(
                                             backgroundColor:
                                                 const Color(0xFF00747F)),
@@ -179,7 +201,8 @@ class ListMakedSurvey extends StatelessWidget {
                                         icon: const Icon(Icons.quiz,
                                             color: Colors.white),
                                         label: const Text('Ver Resultados',
-                                            style: TextStyle(color: Colors.white)),
+                                            style:
+                                                TextStyle(color: Colors.white)),
                                         style: ElevatedButton.styleFrom(
                                             backgroundColor:
                                                 const Color(0xFF005F72)),
@@ -190,7 +213,8 @@ class ListMakedSurvey extends StatelessWidget {
                                         icon: const Icon(Icons.delete,
                                             color: Colors.white),
                                         label: const Text('Eliminar',
-                                            style: TextStyle(color: Colors.white)),
+                                            style:
+                                                TextStyle(color: Colors.white)),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor:
                                               const Color(0xFF00747F),
@@ -202,7 +226,8 @@ class ListMakedSurvey extends StatelessWidget {
                                         icon: const Icon(Icons.share,
                                             color: Colors.white),
                                         label: const Text('Compartir',
-                                            style: TextStyle(color: Colors.white)),
+                                            style:
+                                                TextStyle(color: Colors.white)),
                                         style: ElevatedButton.styleFrom(
                                             backgroundColor:
                                                 const Color(0xFF005F72)),

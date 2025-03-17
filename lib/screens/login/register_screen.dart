@@ -1,8 +1,10 @@
-// filepath: /home/janez/Documents/forms/lib/screens/login/register_screen.dart
+// ignore_for_file: unused_field
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:animate_do/animate_do.dart';
+import 'package:forms/screens/loading/loading_data_screen.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,19 +14,110 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        "555779524183-lbkip9sjkgd1nmnun89ck86stp9pk3ag.apps.googleusercontent.com",
+  );
+
+  Future<void> _signInWithGoogle(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoadingDataScreen()),
+    );
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return;
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final AuthCredential googleCredential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      try {
+        // Intentar iniciar sesión normalmente con Google
+        await FirebaseAuth.instance.signInWithCredential(googleCredential);
+        context.go('/home');
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'account-exists-with-different-credential') {
+          // 🔥 El usuario ya tiene cuenta con otro proveedor
+          String email = e.email!;
+          List<String> providers =
+              await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+
+          if (providers.contains('password')) {
+            // Si el usuario ya tiene una cuenta con correo y contraseña
+            _mostrarDialogoInicioSesion(email);
+          } else if (providers.contains('facebook.com')) {
+            // 🔥 Si la cuenta está asociada a Facebook, pedimos que inicie sesión con Facebook
+            // _signInWithFacebook(context, googleCredential);
+          }
+        } else {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  void _mostrarDialogoInicioSesion(String email) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cuenta existente'),
+          content: Text(
+              'Tu correo $email ya está registrado. Inicia sesión con tu contraseña.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _emailController.text = email;
+                Navigator.pop(context);
+              },
+              child: const Text('Iniciar sesión'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _registerWithEmailAndPassword(BuildContext context) async {
-    if (_passwordController.text != _confirmPasswordController.text) {
+    if (_fullNameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Las contraseñas no coinciden')),
+        const SnackBar(content: Text('Por favor, completa todos los campos')),
       );
       return;
     }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoadingDataScreen()),
+    );
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
@@ -32,179 +125,232 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       await FirebaseAuth.instance.currentUser?.sendEmailVerification();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cuenta creada. Por favor, verifica tu correo electrónico')),
+        const SnackBar(content: Text('Cuenta creada. Verifica tu correo.')),
       );
       context.go('/home');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            SizedBox(
-              height: 300,
-              child: Stack(
-                children: <Widget>[
-                  Positioned(
-                    top: -40,
-                    height: 300,
-                    width: width,
-                    child: FadeInUp(
-                        duration: const Duration(seconds: 1),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage(
-                                      'assets/images/background.png'),
-                                  fit: BoxFit.fill)),
-                        )),
-                  ),
-                  Positioned(
-                    height: 270,
-                    width: width + 20,
-                    child: FadeInUp(
-                        duration: const Duration(milliseconds: 1000),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage(
-                                      'assets/images/login-background2.png'),
-                                  fit: BoxFit.fill)),
-                        )),
-                  )
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.only(bottom: 150),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF88DFFA),
+                  Color(0xFFA667C3),
                 ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  FadeInUp(
-                      duration: const Duration(milliseconds: 1500),
-                      child: const Text(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                SizedBox(
+                  height: 250,
+                  child: Stack(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40, top: 85),
+                        child: IconButton(
+                          icon:
+                              const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () {
+                            context.go('/login');
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
                         "Crear una cuenta",
                         style: TextStyle(
-                            color: Color.fromRGBO(49, 39, 79, 1),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 30),
-                      )),
-                  const SizedBox(
-                    height: 50,
-                  ),
-                  FadeInUp(
-                      duration: const Duration(milliseconds: 1700),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Colors.white,
-                            border: Border.all(
-                                color: const Color.fromRGBO(196, 135, 198, .3)),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color.fromRGBO(196, 135, 198, .3),
-                                blurRadius: 20,
-                                offset: Offset(0, 10),
-                              )
-                            ]),
-                        child: Column(
-                          children: <Widget>[
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: const BoxDecoration(
-                                  border: Border(
-                                      bottom: BorderSide(
-                                          color: Color.fromRGBO(
-                                              196, 135, 198, .3)))),
-                              child: TextField(
-                                controller: _emailController,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: "Email",
-                                    hintStyle:
-                                        TextStyle(color: Colors.grey.shade700)),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              child: TextField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: "Password",
-                                  hintStyle: TextStyle(color: Colors.grey.shade700),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              child: TextField(
-                                controller: _confirmPasswordController,
-                                obscureText: _obscureConfirmPassword,
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: "Confirm Password",
-                                  hintStyle: TextStyle(color: Colors.grey.shade700),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                            )
-                          ],
+                          fontFamily: 'Lato',
+                          color: Colors.white,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
                         ),
-                      )),
-                  const SizedBox(
-                    height: 60,
-                  ),
-                  FadeInUp(
-                      duration: const Duration(milliseconds: 1900),
-                      child: MaterialButton(
-                        onPressed: () => _registerWithEmailAndPassword(context),
-                        color: const Color.fromRGBO(49, 39, 79, 1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        height: 50,
-                        child: const Center(
-                          child: Text(
-                            "Registrar",
-                            style: TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(height: 40),
+                      _buildCustomTextField(
+                          "Nombre Completo", _fullNameController, false),
+                      const SizedBox(height: 16),
+                      _buildCustomTextField(
+                          "Correo Electronico", _emailController, false),
+                      const SizedBox(height: 16),
+                      _buildCustomTextField(
+                          "Ingresa una Contraseña", _passwordController, true),
+                      const SizedBox(height: 24),
+                      _buildSignUpButton(),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            context.go('/forgotPassword');
+                          },
+                          child: const Text(
+                            "Olvidaste tu Contraseña?",
+                            style: TextStyle(
+                              fontFamily: 'Lato',
+                              color: Colors.white,
+                              fontWeight: FontWeight.normal,
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.white,
+                            ),
                           ),
                         ),
-                      )),
-                ],
-              ),
-            )
+                      ),
+                      const SizedBox(height: 16),
+                      _buildDivider(),
+                      const SizedBox(height: 24),
+                      Center(child: _buildGoogleSignInButton()),
+                      const SizedBox(height: 16),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            context.go('/login');
+                          },
+                          child: const Text(
+                            "Ya tienes una cuenta? Inicia sesión",
+                            style: TextStyle(
+                              fontFamily: 'Lato',
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomTextField(
+      String hint, TextEditingController controller, bool isPassword) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white, width: 1),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword ? _obscurePassword : false,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white70),
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.white70,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                )
+              : null,
+        ),
+        style: const TextStyle(fontFamily: 'Lato', color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildSignUpButton() {
+    return MaterialButton(
+      onPressed: () => _registerWithEmailAndPassword(context),
+      color: const Color.fromARGB(255, 116, 59, 143),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      height: 50,
+      minWidth: double.infinity,
+      child: const Text(
+        "Registrarse",
+        style: TextStyle(
+            fontFamily: 'Lato',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Divider(color: Colors.white54, thickness: 1),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            "O Inicia sesión con",
+            style: TextStyle(
+                fontFamily: 'Lato', color: Colors.white70, fontSize: 14),
+          ),
+        ),
+        Expanded(
+          child: Divider(color: Colors.white54, thickness: 1),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGoogleSignInButton() {
+    return GestureDetector(
+      onTap: () {
+        _signInWithGoogle(context);
+      },
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
           ],
+        ),
+        child: Center(
+          child: Image.asset(
+            'assets/images/google-icon.png',
+            height: 30,
+          ),
         ),
       ),
     );

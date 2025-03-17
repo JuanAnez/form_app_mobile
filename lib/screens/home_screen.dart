@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:forms/widgets/card_widget.dart';
-import 'package:forms/widgets/submit_button_widget.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -18,8 +17,7 @@ class HomeScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData) {
-          Future.microtask(() =>
-              context.go('/login')); // Evitar errores de navegación en `build`
+          Future.microtask(() => context.go('/login'));
           return const SizedBox.shrink();
         }
 
@@ -34,23 +32,33 @@ class HomeScreen extends StatelessWidget {
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Forms'),
+                  const Text(
+                    'Forms',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
                   Text(
                     displayName,
-                    style: const TextStyle(fontSize: 14),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                   Text(
                     email,
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal,
+                        color: Colors.white),
                   ),
                 ],
               ),
-              backgroundColor: Colors.blue[200],
+              backgroundColor: Color.fromARGB(255, 13, 148, 189),
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(4.0),
                 child: Container(
-                  color: Colors.blue[300],
-                  height: 4.0,
+                  color: Color.fromARGB(255, 74, 8, 105),
+                  height: 1.0,
                 ),
               ),
               actions: [
@@ -61,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                 else
                   const Icon(Icons.person),
                 IconButton(
-                  icon: const Icon(Icons.logout),
+                  icon: const Icon(Icons.logout, color: Colors.white),
                   onPressed: () async {
                     await FirebaseAuth.instance.signOut();
                     context.go('/login');
@@ -72,43 +80,53 @@ class HomeScreen extends StatelessWidget {
             body: LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _spaceBox(),
-                      const SubmitButtonWidget(),
-                      _spaceBox(),
-                      CardWidget(
-                        imagePath: 'assets/images/survey-portal.png',
-                        title: 'Crear Encuesta',
-                        onTap: () {
-                          context.go('/listasModelos');
-                        },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF88DFFA), Color(0xFFA667C3)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
-                      _spaceBox(),
-                      CardWidget(
-                        imagePath: 'assets/images/registration-portal.png',
-                        title: 'Encuestas realizadas',
-                        onTap: () {
-                          context.go('/listasEcuestas');
-                        },
+                    ),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          _spaceBox(),
+                          // const SubmitButtonWidget(),
+                          CardWidget(
+                            imagePath: 'assets/images/survey-portal.png',
+                            title: 'Crear Encuesta',
+                            onTap: () {
+                              context.go('/listasModelos');
+                            },
+                          ),
+                          _spaceBox(),
+                          CardWidget(
+                            imagePath: 'assets/images/registration-portal.png',
+                            title: 'Encuestas realizadas',
+                            onTap: () {
+                              context.go('/listasEcuestas');
+                            },
+                          ),
+                          _spaceBox(),
+                          CardWidget(
+                            imagePath: 'assets/images/quiz-portal.png',
+                            title: 'Cuestionario',
+                            onTap: () {
+                              context.go('/quizScreen');
+                            },
+                          ),
+                          _spaceBox(),
+                          CardWidget(
+                            imagePath: 'assets/images/invitation-portal.png',
+                            title: 'Invitacion',
+                            onTap: () {
+                              context.go('/registrationScreen');
+                            },
+                          ),
+                        ],
                       ),
-                      _spaceBox(),
-                      CardWidget(
-                        imagePath: 'assets/images/quiz-portal.png',
-                        title: 'Cuestionario',
-                        onTap: () {
-                          context.go('/quiz');
-                        },
-                      ),
-                      _spaceBox(),
-                      CardWidget(
-                        imagePath: 'assets/images/invitation-portal.png',
-                        title: 'Invitacion',
-                        onTap: () {
-                          context.go('/registration');
-                        },
-                      ),
-                    ],
+                    ),
                   ),
                 );
               },
