@@ -93,7 +93,7 @@ class CardWidgetSmall extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: Container(
-        width: 380,
+        // width: 380,
         height: 150,
         decoration: BoxDecoration(
           color: Colors.white,

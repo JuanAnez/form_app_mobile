@@ -114,19 +114,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoadingDataScreen()),
-    );
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
+      // Crear usuario con email y password
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+
+      // Actualizar el nombre del usuario en Firebase
+      await userCredential.user?.updateDisplayName(_fullNameController.text);
+
+      // Enviar verificación de correo
+      await userCredential.user?.sendEmailVerification();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cuenta creada. Verifica tu correo.')),
       );
+
       context.go('/home');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

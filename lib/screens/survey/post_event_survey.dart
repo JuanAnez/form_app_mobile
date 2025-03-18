@@ -427,10 +427,11 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
                             Expanded(
                               child: Text("${index + 1}. ${question["text"]}",
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
+                                      fontWeight: FontWeight.bold, fontSize: 18)),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon:
+                                  const Icon(Icons.delete, color: Colors.grey),
                               onPressed: () => removeQuestion(index),
                             ),
                           ],
@@ -456,7 +457,7 @@ class _PostEventSurveyState extends State<PostEventSurvey> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete,
-                                      color: Colors.red),
+                                      color: Colors.grey),
                                   onPressed: () =>
                                       removeOption(index, optionIndex),
                                 ),

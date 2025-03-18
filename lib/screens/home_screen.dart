@@ -19,9 +19,16 @@ class HomeScreen extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final user = snapshot.data;
+        final user = FirebaseAuth.instance.currentUser;
+
+        if (user != null) {
+          user.reload(); 
+        }
+
+        // final user = snapshot.data;
         final photoUrl = user?.photoURL;
-        final displayName = user?.displayName ?? 'Usuario';
+        final displayName =
+            user?.displayName ?? 'Usuario'; //No viene el nombre del usuario
         final email = user?.email ?? 'Correo no disponible';
 
         return SafeArea(

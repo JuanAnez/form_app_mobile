@@ -23,23 +23,55 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _signInWithEmailAndPassword(BuildContext context) async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Por favor, ingrese su correo electrónico y contraseña'),
+          backgroundColor: Colors.black,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoadingDataScreen()),
-    );
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text,
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
       context.go('/home');
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Error al iniciar sesión';
+
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No existe una cuenta con este correo.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Contraseña incorrecta. Inténtalo de nuevo.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'Correo electrónico no válido.';
+      } else if (e.code == 'too-many-requests') {
+        errorMessage = 'Demasiados intentos. Intenta más tarde.';
+      } else if (e.code == 'user-disabled') {
+        errorMessage = 'Tu cuenta ha sido deshabilitada.';
+      } else if (e.code == 'invalid-credential') {
+        errorMessage = 'Credenciales inválidas o expiradas.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.black.withOpacity(0.8),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
